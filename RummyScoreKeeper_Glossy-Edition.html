@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rummy Score Keeper - Glossy Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-image: linear-gradient(to bottom right, #f3e8ff, #e0e7ff, #ffe4e6); /* Light purple, indigo, pink tints */
+            color: #374151; /* text-gray-700 */
+            overscroll-behavior-y: contain;
+            min-height: 100vh;
+            display: flex; /* For centering content if needed */
+            flex-direction: column; /* Stack home and app pages */
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 1000px; /* Increased max-width for better layout on wider screens */
+            margin: 0 auto; /* Center the container */
+            padding: 1rem; /* p-4 */
+        }
+         @media (min-width: 768px) { /* md */
+            .main-container {
+                padding: 1.5rem; /* md:p-6 */
+            }
+        }
+        @media (min-width: 1024px) { /* lg */
+            .main-container {
+                padding: 2rem; /* lg:p-8 */
+            }
+        }
+
+
+        /* Custom scrollbar */
+        @media (min-width: 768px) {
+            ::-webkit-scrollbar {
+                width: 10px;
+                height: 10px;
+            }
+            ::-webkit-scrollbar-track {
+                background: rgba(229, 231, 235, 0.5);
+                border-radius: 10px;
+            }
+            ::-webkit-scrollbar-thumb {
+                background: #a5b4fc;
+                border-radius: 10px;
+                border: 2px solid transparent;
+                background-clip: content-box;
+            }
+            ::-webkit-scrollbar-thumb:hover {
+                background: #818cf8;
+            }
+        }
+
+        /* Button styling */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            color: white;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            border: none;
+            text-align: center;
+            line-height: 1.25;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.07), inset 0 -2px 0px rgba(0,0,0,0.1);
+            transform-style: preserve-3d;
+        }
+        .btn:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1), inset 0 -2px 0px rgba(0,0,0,0.1);
+        }
+        .btn:active {
+            transform: translateY(0px) scale(0.98);
+            box-shadow: 0 2px 3px -1px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(0,0,0,0.2);
+        }
+        .btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.4);
+        }
+        .btn-primary {
+            background-image: linear-gradient(to right, #818cf8, #6366f1);
+        }
+        .btn-primary:hover {
+            background-image: linear-gradient(to right, #6366f1, #4f46e5);
+        }
+        .btn-success {
+            background-image: linear-gradient(to right, #34d399, #10b981);
+        }
+        .btn-success:hover {
+            background-image: linear-gradient(to right, #10b981, #059669);
+        }
+        .btn-danger {
+            background-image: linear-gradient(to right, #f87171, #ef4444);
+        }
+        .btn-danger:hover {
+            background-image: linear-gradient(to right, #ef4444, #dc2626);
+        }
+        .btn-danger-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+            background-image: linear-gradient(to right, #fb7185, #f43f5e);
+            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.06), inset 0 -1px 0px rgba(0,0,0,0.1);
+        }
+        .btn-danger-sm:hover {
+            background-image: linear-gradient(to right, #f43f5e, #e11d48);
+            transform: translateY(-1px) scale(1.01);
+            box-shadow: 0 5px 10px -3px rgba(0, 0, 0, 0.1), 0 2px 3px -2px rgba(0, 0, 0, 0.1), inset 0 -1px 0px rgba(0,0,0,0.1);
+        }
+        .btn-danger-sm:active {
+            transform: translateY(0px) scale(0.99);
+            box-shadow: 0 1px 2px -1px rgba(0, 0, 0, 0.05), inset 0 1px 1px rgba(0,0,0,0.2);
+        }
+
+        /* Input field styling */
+        input[type="text"], input[type="number"] {
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            width: 100%;
+            box-sizing: border-box;
+            background-color: rgba(255, 255, 255, 0.8);
+            transition: all 0.2s ease-in-out;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+        }
+        input[type="text"]:focus, input[type="number"]:focus {
+            border-color: #818cf8;
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.25), inset 0 1px 2px rgba(0,0,0,0.05);
+            outline: none;
+        }
+        input[type="number"] { -moz-appearance: textfield; }
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Section and Card Styling */
+        .frosted-glass-section {
+            background-color: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px) saturate(150%);
+            -webkit-backdrop-filter: blur(12px) saturate(150%);
+            border-radius: 1rem;
+            box-shadow: 0 8px 32px 0 rgba(129, 140, 248, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1.5rem;
+        }
+        @media (min-width: 768px) {
+            .frosted-glass-section {
+                padding: 2rem;
+            }
+        }
+        .player-card {
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px) saturate(120%);
+            -webkit-backdrop-filter: blur(8px) saturate(120%);
+            border-radius: 0.75rem;
+            box-shadow: 0 6px 20px 0 rgba(129, 140, 248, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 1.25rem;
+            transition: all 0.3s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .player-card:hover {
+            transform: translateY(-4px) scale(1.01);
+            box-shadow: 0 10px 25px 0 rgba(129, 140, 248, 0.25);
+        }
+
+        /* Modal Styling */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(30, 27, 58, 0.7);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-image: linear-gradient(to bottom right, #ffffff, #f3e8ff, #e0e7ff);
+            padding: 1.75rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            width: 90%;
+            max-width: 420px;
+            transform: scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+
+        /* Custom Alert Styling */
+        .custom-alert {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-image: linear-gradient(to right, #4338ca, #312e81);
+            color: white;
+            padding: 0.875rem 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s ease, top 0.3s ease, transform 0.3s ease;
+            display: none;
+        }
+        .custom-alert.show {
+            display: block;
+            opacity: 1;
+            top: 40px;
+            transform: translateX(-50%) scale(1);
+        }
+
+        /* Game History Table Styling */
+        #gameHistoryTable th {
+            position: sticky;
+            top: 0;
+            background-color: rgba(243, 244, 246, 0.85);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            z-index: 10;
+        }
+        #gameHistoryTable td {
+            white-space: nowrap;
+        }
+        .table-container-glossy {
+             background-color: rgba(255, 255, 255, 0.6);
+             backdrop-filter: blur(10px) saturate(130%);
+             -webkit-backdrop-filter: blur(10px) saturate(130%);
+             border-radius: 1rem;
+             box-shadow: 0 8px 25px 0 rgba(129, 140, 248, 0.15);
+             border: 1px solid rgba(255, 255, 255, 0.15);
+             overflow: hidden;
+        }
+
+        /* Instruction Page Specific Styles */
+        .instruction-item {
+            background-color: rgba(255, 255, 255, 0.88); /* Slightly more opaque for readability */
+            backdrop-filter: blur(6px) saturate(110%);
+            -webkit-backdrop-filter: blur(6px) saturate(110%);
+            border-radius: 0.75rem; /* rounded-xl */
+            padding: 1rem 1.25rem; /* p-4 md:p-5 */
+            margin-bottom: 1rem; /* mb-4 */
+            box-shadow: 0 4px 15px rgba(129, 140, 248, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .instruction-item h3 {
+            font-size: 1.125rem; /* text-lg */
+            font-weight: 600; /* font-semibold */
+            color: #4f46e5; /* indigo-700 */
+            margin-bottom: 0.5rem; /* mb-2 */
+        }
+        .instruction-item p {
+            font-size: 0.95rem; /* Slightly larger than text-sm */
+            color: #4b5563; /* text-gray-600 */
+            line-height: 1.6;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="homePage" class="main-container">
+        <header class="text-center mb-8 md:mb-10">
+            <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold">
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-500">
+                    Rummy Score Keeper
+                </span>
+            </h1>
+            <p class="mt-3 text-lg md:text-xl text-indigo-700">Welcome! Let's make score tracking easy & fun.</p>
+        </header>
+
+        <section class="frosted-glass-section mb-8 md:mb-10">
+            <h2 class="text-2xl md:text-3xl font-bold mb-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-700">How to Play & Score</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="instruction-item">
+                    <h3>1. Add Players</h3>
+                    <p>In the "Game Setup" section, type a player's name into the "New Player Name" box and click "Add Player". Repeat for all players (up to 12).</p>
+                </div>
+                <div class="instruction-item">
+                    <h3>2. Enter Scores</h3>
+                    <p>For each player card, enter their score for the current round in the input field. The "Total Score" updates automatically.</p>
+                </div>
+                <div class="instruction-item">
+                    <h3>3. End Round</h3>
+                    <p>Once all scores for the current round are entered, click "End Round & Save". This saves the round's scores to the "Game History" and moves to the next round.</p>
+                </div>
+                <div class="instruction-item">
+                    <h3>4. Declare Winner</h3>
+                    <p>When the game is over, click "Declare Winner". The player(s) with the lowest total score will be announced with a fun confetti celebration!</p>
+                </div>
+                <div class="instruction-item">
+                    <h3>5. View History</h3>
+                    <p>The "Game History Log" shows a table of scores for all completed rounds, so you can track progress.</p>
+                </div>
+                <div class="instruction-item">
+                    <h3>6. Reset Game</h3>
+                    <p>Need a fresh start? Click "Reset Game" to clear all players, scores, and history. Be careful, this action cannot be undone!</p>
+                </div>
+            </div>
+
+            <div class="mt-8 text-center">
+                <button id="goToScoreKeeperBtn" class="btn btn-primary btn-lg text-xl px-10 py-4">Let's Start Scoring!</button>
+            </div>
+        </section>
+
+        <footer class="text-center text-sm text-slate-500 mt-10 py-4 border-t border-slate-300/50">
+            <p>&copy; <span id="currentYearHome"></span> Rummy Score Keeper - Glossy Edition. Happy Gaming!</p>
+        </footer>
+    </div>
+
+    <div id="scoreKeeperPage" class="main-container" style="display: none;">
+        <header class="text-center mb-8 md:mb-12">
+             <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold">
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-500">
+                    Rummy Score Keeper
+                </span>
+            </h1>
+            <button id="backToInstructionsBtn" class="btn btn-primary mt-4 text-sm px-4 py-2">&larr; Back to Instructions</button>
+        </header>
+
+        <div id="customAlert" class="custom-alert"></div>
+
+        <section id="controls" class="frosted-glass-section mb-8 md:mb-10">
+            <h2 class="text-2xl md:text-3xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-700">Game Setup</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label for="playerNameInput" class="block text-sm font-medium text-gray-700 mb-2">New Player Name:</label>
+                    <div class="flex space-x-3">
+                        <input type="text" id="playerNameInput" placeholder="E.g., Cosmic Player" class="flex-grow min-w-0">
+                        <button id="addPlayerBtn" class="btn btn-primary whitespace-nowrap">Add Player</button>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-col sm:flex-row flex-wrap gap-4 justify-center md:justify-start items-center">
+                <button id="endRoundBtn" class="btn btn-success w-full sm:w-auto">End Round & Save</button>
+                <button id="declareWinnerBtn" class="btn btn-primary w-full sm:w-auto">Declare Winner</button>
+                <button id="resetGameBtn" class="btn btn-danger w-full sm:w-auto">Reset Game</button>
+            </div>
+        </section>
+
+        <section id="playersSection" class="mb-8 md:mb-10">
+            <h2 class="text-2xl md:text-3xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-700">
+                Players & Scores <span class="text-xl md:text-2xl text-purple-500">(Round <span id="currentRoundDisplay">1</span>)</span>
+            </h2>
+            <div id="playersContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6">
+            </div>
+            <p id="noPlayersMessage" class="frosted-glass-section text-gray-600 text-center py-8 text-lg">No players added yet. Beam them up to start scoring!</p>
+        </section>
+
+        <section id="gameHistory" class="mb-8 md:mb-10">
+            <h2 class="text-2xl md:text-3xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-700">Game History Log</h2>
+            <div id="gameHistoryContainer" class="table-container-glossy overflow-x-auto">
+                <table id="gameHistoryTable" class="min-w-full">
+                    <thead class="bg-opacity-50"> </thead>
+                    <tbody class="divide-y divide-gray-200/70">
+                    </tbody>
+                </table>
+                <p id="noHistoryMessage" class="text-gray-600 text-center p-8 text-lg">No rounds completed. The story of the game is yet to be written!</p>
+            </div>
+        </section>
+
+        <footer class="text-center text-sm text-slate-500 mt-10 md:mt-16 py-6 border-t border-slate-300/50">
+            <p>&copy; <span id="currentYearApp"></span> Rummy Score Keeper - Glossy Edition. May the best hand win!</p>
+            <p class="mt-1">Enhanced by AI | Original by Satya | <a href="mailto:mnvdsreddy@gmail.com" class="text-indigo-500 hover:text-indigo-600 hover:underline">mnvdsreddy@gmail.com</a></p>
+        </footer>
+    </div>
+
+    <div id="winnerModal" class="modal">
+        <div class="modal-content">
+            <h3 id="winnerModalText" class="text-2xl md:text-3xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500"></h3>
+            <canvas id="confettiCanvas" class="absolute top-0 left-0 w-full h-full pointer-events-none z-[1001]"></canvas>
+            <button id="closeWinnerModalBtn" class="btn btn-primary w-full mt-2">Awesome!</button>
+        </div>
+    </div>
+
+    <script>
+        // Page Elements
+        const homePage = document.getElementById('homePage');
+        const scoreKeeperPage = document.getElementById('scoreKeeperPage');
+        const goToScoreKeeperBtn = document.getElementById('goToScoreKeeperBtn');
+        const backToInstructionsBtn = document.getElementById('backToInstructionsBtn');
+
+        // DOM Elements for Score Keeper
+        const playerNameInput = document.getElementById('playerNameInput');
+        const addPlayerBtn = document.getElementById('addPlayerBtn');
+        const playersContainer = document.getElementById('playersContainer');
+        const noPlayersMessage = document.getElementById('noPlayersMessage');
+        const endRoundBtn = document.getElementById('endRoundBtn');
+        const declareWinnerBtn = document.getElementById('declareWinnerBtn');
+        const resetGameBtn = document.getElementById('resetGameBtn');
+        const currentRoundDisplay = document.getElementById('currentRoundDisplay');
+        const gameHistoryTable = document.getElementById('gameHistoryTable');
+        const noHistoryMessage = document.getElementById('noHistoryMessage');
+        const winnerModal = document.getElementById('winnerModal');
+        const winnerModalText = document.getElementById('winnerModalText');
+        const closeWinnerModalBtn = document.getElementById('closeWinnerModalBtn');
+        const customAlertDiv = document.getElementById('customAlert');
+        const confettiCanvas = document.getElementById('confettiCanvas');
+
+        // Set current year in footers
+        document.getElementById('currentYearHome').textContent = new Date().getFullYear();
+        document.getElementById('currentYearApp').textContent = new Date().getFullYear();
+
+
+        // Game State
+        let gameState = {
+            players: [],
+            currentRound: 1,
+            history: []
+        };
+
+        // --- Page Navigation ---
+        goToScoreKeeperBtn.addEventListener('click', () => {
+            homePage.style.display = 'none';
+            scoreKeeperPage.style.display = 'block';
+            // Initialize or re-render score keeper state if needed
+            // For now, assuming DOMContentLoaded handles initial load correctly
+        });
+
+        backToInstructionsBtn.addEventListener('click', () => {
+            scoreKeeperPage.style.display = 'none';
+            homePage.style.display = 'block';
+        });
+
+
+        // --- Custom Alert Function ---
+        let alertTimeout;
+        function showAlert(message, duration = 3000) {
+            customAlertDiv.textContent = message;
+            customAlertDiv.classList.add('show');
+            customAlertDiv.style.transform = 'translateX(-50%) scale(0.9)';
+            requestAnimationFrame(() => {
+                 requestAnimationFrame(() => {
+                    customAlertDiv.style.transform = 'translateX(-50%) scale(1)';
+                 });
+            });
+
+            clearTimeout(alertTimeout);
+            alertTimeout = setTimeout(() => {
+                customAlertDiv.style.transform = 'translateX(-50%) scale(0.9)';
+                customAlertDiv.classList.remove('show');
+            }, duration);
+        }
+
+        // --- Initialization (Score Keeper Specific) ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Score keeper logic is initialized here, but elements might not be visible yet.
+            // Ensure functions like loadState, renderPlayers, etc., are robust.
+            loadState(); // Load any saved game state
+            renderPlayers();
+            renderHistory();
+            updateCurrentRoundDisplay();
+            checkPlayerMessageVisibility();
+            checkHistoryMessageVisibility();
+
+            if (playerNameInput) { // Check if element exists before adding listener
+                playerNameInput.addEventListener('keypress', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        addPlayerBtn.click();
+                    }
+                });
+            }
+        });
+
+        // --- Player Management ---
+        if (addPlayerBtn) { // Check if element exists
+            addPlayerBtn.addEventListener('click', () => {
+                const name = playerNameInput.value.trim();
+                if (name) {
+                    if (gameState.players.find(p => p.name.toLowerCase() === name.toLowerCase())) {
+                        showAlert('Player with this name already exists!');
+                        return;
+                    }
+                    if (gameState.players.length >= 12) {
+                        showAlert('Maximum of 12 players allowed.');
+                        return;
+                    }
+                    const newPlayer = {
+                        id: `player_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                        name: name,
+                        scores: [],
+                        currentRoundScoreInput: '', // Initialize as empty for placeholder
+                        totalScore: 0
+                    };
+                    gameState.players.push(newPlayer);
+                    playerNameInput.value = '';
+                    renderPlayers();
+                    renderHistory();
+                    saveState();
+                    checkPlayerMessageVisibility();
+                    playerNameInput.focus();
+                } else {
+                    showAlert('Please enter a player name.');
+                }
+            });
+        }
+
+        function renderPlayers() {
+            if (!playersContainer) return; // Element might not be visible/exist if on home page
+            playersContainer.innerHTML = '';
+            if (gameState.players.length === 0) {
+                checkPlayerMessageVisibility();
+                return;
+            }
+
+            gameState.players.forEach(player => {
+                const card = document.createElement('div');
+                card.className = 'player-card';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-3">
+                        <h3 class="text-lg sm:text-xl font-semibold text-indigo-600 break-all">${player.name}</h3>
+                        <button class="remove-player-btn btn btn-danger-sm" data-player-id="${player.id}" title="Remove Player">&times; Remove</button>
+                    </div>
+                    <div class="flex-grow mb-3">
+                        <label for="score-${player.id}" class="block text-xs sm:text-sm font-medium text-gray-600 mb-1">Score for Round ${gameState.currentRound}:</label>
+                        <input type="number" id="score-${player.id}" class="current-score-input w-full text-lg" placeholder="0" value="${player.currentRoundScoreInput || ''}" inputmode="numeric" pattern="[0-9]*">
+                    </div>
+                    <p class="text-md sm:text-lg mt-auto">Total Score: <span class="font-bold text-emerald-600">${player.totalScore}</span></p>
+                `;
+                playersContainer.appendChild(card);
+
+                const scoreInput = card.querySelector(`#score-${player.id}`);
+                scoreInput.addEventListener('input', (e) => {
+                    player.currentRoundScoreInput = e.target.value === '' ? '' : (parseInt(e.target.value) || 0);
+                });
+                scoreInput.addEventListener('change', (e) => {
+                     player.currentRoundScoreInput = e.target.value === '' ? 0 : (parseInt(e.target.value) || 0);
+                     saveState();
+                });
+
+                const removeBtn = card.querySelector('.remove-player-btn');
+                removeBtn.addEventListener('click', () => removePlayer(player.id));
+            });
+            checkPlayerMessageVisibility();
+        }
+
+        function removePlayer(playerId) {
+            const playerToRemove = gameState.players.find(p => p.id === playerId);
+            if (!playerToRemove) return;
+
+            if (!confirm(`Are you sure you want to remove "${playerToRemove.name}"? This will also remove their scores from history.`)) {
+                return;
+            }
+            gameState.players = gameState.players.filter(p => p.id !== playerId);
+            gameState.history.forEach(roundData => {
+                delete roundData.scores[playerId];
+            });
+            
+            renderPlayers();
+            renderHistory();
+            saveState();
+            checkPlayerMessageVisibility();
+        }
+
+        // --- Scoring and Rounds ---
+        if(endRoundBtn) { // Check if element exists
+            endRoundBtn.addEventListener('click', () => {
+                if (gameState.players.length === 0) {
+                    showAlert('Please add players before ending a round.');
+                    return;
+                }
+
+                const roundScores = {};
+                gameState.players.forEach(player => {
+                    const scoreInput = document.getElementById(`score-${player.id}`);
+                    let scoreValue = scoreInput.value;
+                    player.currentRoundScoreInput = scoreValue === '' ? 0 : (parseInt(scoreValue) || 0);
+
+                    const score = player.currentRoundScoreInput;
+                    
+                    player.scores.push(score);
+                    player.totalScore = player.scores.reduce((sum, s) => sum + s, 0);
+                    roundScores[player.id] = score;
+                    player.currentRoundScoreInput = '';
+                });
+
+                gameState.history.push({
+                    round: gameState.currentRound,
+                    scores: roundScores
+                });
+
+                gameState.currentRound++;
+                updateCurrentRoundDisplay();
+                renderPlayers();
+                renderHistory();
+                saveState();
+                checkHistoryMessageVisibility();
+                showAlert(`Round ${gameState.currentRound -1} scores saved! Starting Round ${gameState.currentRound}.`, 2500);
+            });
+        }
+
+        function updateCurrentRoundDisplay() {
+            if (currentRoundDisplay) currentRoundDisplay.textContent = gameState.currentRound;
+        }
+
+        // --- Game History ---
+        function renderHistory() {
+            if (!gameHistoryTable) return; // Element might not be visible/exist
+            const tableHead = gameHistoryTable.querySelector('thead');
+            const tableBody = gameHistoryTable.querySelector('tbody');
+
+            tableHead.innerHTML = '';
+            tableBody.innerHTML = '';
+
+            if (gameState.players.length === 0) {
+                checkHistoryMessageVisibility();
+                return;
+            }
+
+            const headerRow = document.createElement('tr');
+            headerRow.innerHTML = `<th class="px-4 py-3 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Round</th>`;
+            gameState.players.forEach(player => {
+                const th = document.createElement('th');
+                th.className = "px-4 py-3 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider truncate";
+                th.title = player.name;
+                th.textContent = player.name.length > 10 ? player.name.substring(0,8) + "..." : player.name;
+                headerRow.appendChild(th);
+            });
+            tableHead.appendChild(headerRow);
+
+            gameState.history.forEach(roundData => {
+                const row = document.createElement('tr');
+                row.className = "hover:bg-indigo-50/50 transition-colors duration-150";
+                row.innerHTML = `<td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-800">${roundData.round}</td>`;
+                gameState.players.forEach(player => {
+                    const score = roundData.scores[player.id] !== undefined ? roundData.scores[player.id] : '-';
+                    row.innerHTML += `<td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">${score}</td>`;
+                });
+                tableBody.appendChild(row);
+            });
+            checkHistoryMessageVisibility();
+        }
+
+        // --- Winner Declaration ---
+        if(declareWinnerBtn) { // Check if element exists
+            declareWinnerBtn.addEventListener('click', () => {
+                if (gameState.players.length === 0) {
+                    showAlert('Add players to declare a winner.');
+                    return;
+                }
+                if (gameState.history.length === 0 && gameState.players.every(p => p.scores.length === 0)) {
+                    showAlert('Play at least one round to declare a winner.');
+                    return;
+                }
+
+                let winners = [];
+                let minScore = Infinity;
+
+                gameState.players.forEach(player => {
+                    if (player.totalScore < minScore) {
+                        minScore = player.totalScore;
+                        winners = [player];
+                    } else if (player.totalScore === minScore) {
+                        winners.push(player);
+                    }
+                });
+
+                if (winners.length > 0) {
+                    const winnerNames = winners.map(w => w.name).join(' & ');
+                    const message = winners.length > 1 ? `It's a tie! Winners: ${winnerNames} with ${minScore} points!` : `🎉 Stellar Win! ${winnerNames} is the Rummy Champion with ${minScore} points! 🎉`;
+                    winnerModalText.innerHTML = message;
+                    winnerModal.classList.add('active');
+
+                    const myConfetti = confetti.create(confettiCanvas, {
+                        resize: true,
+                        useWorker: true
+                    });
+                    const duration = 3 * 1000;
+                    const animationEnd = Date.now() + duration;
+                    
+                    function frame() {
+                        if (Date.now() > animationEnd) return;
+                        myConfetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
+                        myConfetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
+                        requestAnimationFrame(frame);
+                    }
+                    frame();
+
+                } else {
+                    winnerModalText.textContent = "No winner could be determined. Play some rounds!";
+                    winnerModal.classList.add('active');
+                }
+            });
+        }
+
+        if(closeWinnerModalBtn) { // Check if element exists
+            closeWinnerModalBtn.addEventListener('click', () => {
+                winnerModal.classList.remove('active');
+            });
+        }
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && winnerModal && winnerModal.classList.contains('active')) {
+                winnerModal.classList.remove('active');
+            }
+        });
+        if(winnerModal) { // Check if element exists
+            winnerModal.addEventListener('click', (event) => {
+                if (event.target === winnerModal) {
+                    winnerModal.classList.remove('active');
+                }
+            });
+        }
+
+        // --- Reset Game ---
+        if(resetGameBtn) { // Check if element exists
+            resetGameBtn.addEventListener('click', () => {
+                if (confirm('Are you sure you want to reset the entire game? All data will be lost in the cosmic void!')) {
+                    gameState = { players: [], currentRound: 1, history: [] };
+                    localStorage.removeItem('rummyScoreGameState');
+                    renderPlayers();
+                    renderHistory();
+                    updateCurrentRoundDisplay();
+                    checkPlayerMessageVisibility();
+                    checkHistoryMessageVisibility();
+                    showAlert('Game has been reset. A fresh start!', 2000);
+                }
+            });
+        }
+
+        // --- Utility Functions ---
+        function checkPlayerMessageVisibility() {
+            if (!noPlayersMessage || !playersContainer) return;
+            if (gameState.players.length === 0) {
+                noPlayersMessage.style.display = 'block';
+                playersContainer.style.display = 'none';
+            } else {
+                noPlayersMessage.style.display = 'none';
+                playersContainer.style.display = 'grid';
+            }
+        }
+
+        function checkHistoryMessageVisibility() {
+            if (!noHistoryMessage || !gameHistoryTable) return;
+            if (gameState.history.length === 0) {
+                noHistoryMessage.style.display = 'block';
+                if(gameState.players.length === 0) {
+                     gameHistoryTable.style.display = 'none';
+                } else {
+                     gameHistoryTable.style.display = 'table';
+                }
+            } else {
+                noHistoryMessage.style.display = 'none';
+                gameHistoryTable.style.display = 'table';
+            }
+        }
+
+        // --- Local Storage for Persistence ---
+        function saveState() {
+            try {
+                localStorage.setItem('rummyScoreGameState', JSON.stringify(gameState));
+            } catch (e) {
+                console.error("Error saving state to localStorage:", e);
+                showAlert("Could not save game state. Your browser's storage might be full or restricted.");
+            }
+        }
+
+        function loadState() {
+            const savedState = localStorage.getItem('rummyScoreGameState');
+            if (savedState) {
+                try {
+                    const loaded = JSON.parse(savedState);
+                    if (loaded && typeof loaded === 'object' && Array.isArray(loaded.players)) {
+                        gameState = loaded;
+                        gameState.players.forEach(p => {
+                            p.currentRoundScoreInput = p.currentRoundScoreInput === undefined ? '' : p.currentRoundScoreInput;
+                            p.scores = Array.isArray(p.scores) ? p.scores : [];
+                            p.totalScore = typeof p.totalScore === 'number' ? p.totalScore : p.scores.reduce((sum, s) => sum + (parseInt(s) || 0), 0);
+                        });
+                        gameState.currentRound = typeof gameState.currentRound === 'number' && gameState.currentRound >= 1 ? gameState.currentRound : 1;
+                        gameState.history = Array.isArray(gameState.history) ? gameState.history : [];
+                    } else {
+                        // console.warn("Invalid game state found in localStorage. Resetting to default.");
+                    }
+                } catch (e) {
+                    // console.error("Error parsing saved state from localStorage:", e);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
